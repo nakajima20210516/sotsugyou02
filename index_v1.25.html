@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <!--ver1.25-->
+    <meta charset="UTF-8">
+    <title>PVPバトルへようこそ！</title>
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/react/16.4.0/umd/react.development.js"></script>
+    <script src="https://cdn.staticfile.org/react-dom/16.4.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.staticfile.org/babel-standalone/6.26.0/babel.min.js"></script>
+    <script>
+        $(function(){
+            function getjob(player){
+                return $("#p"+player+"name")[0].value
+            }
+            function setjob(player,job){
+                if(job == "戦士"){
+                    setall(player,30,10,20,150,0,480)
+                }else if(job == "盗賊"){
+                    setall(player,20,0,50,250,40,300)
+                }else if(job == "アーチャー"){
+                    setall(player,30,0,80,200,15,360)
+                }else if(job == "魔法使い"){
+                    setall(player,55,0,20,150,0,300)
+                }
+            }
+            function getname(player){
+                return $("#p"+player+"name").val()
+            }
+            function getstate(player,state){
+                return $("#p"+player+state).val()
+            }
+            function setstate(player,state,num){
+                $("#p"+player+state)[0].value = num
+            }
+
+            setjob(1,getjob(1))
+            setjob(2,getjob(2))
+            
+            function refresh(){
+                $("input:button").css("background-color","silver")
+            }
+            function sleep(){               
+                setTimeout(refresh,150)
+            }  
+            function show(id){
+                $("#"+id)[0].style.visibility = "visible";
+            }
+            function showall(){
+                show("playerTable")
+                show("p1skilllog")
+                show("p1skillresult")
+                show("enemyTable")
+                show("p2skilllog")
+                show("p2skillresult")
+            }
+            function hide(id){
+                $("#"+id)[0].style.visibility = "hidden";
+            }
+            function hideall(){
+                hide("playerTable")
+                hide("p1skilllog")
+                hide("p1skillresult")
+                hide("enemyTable")
+                hide("p2skilllog")
+                hide("p2skillresult")
+            }
+            
+            var skills = [
+                        {'url':'url(StateImg/p1_0.jpg','name':'斬撃','discribtion':'攻撃7上昇し、攻撃する。連続に使うと、さらにダメージ30％上昇し、追撃する。'},
+                        {'url':'url(StateImg/p1_1.jpg','name':'氷柱','discribtion':'必中攻撃する。このスキルは1回を使う度にダメージ120％UP。'},
+                        {'url':'url(StateImg/p1_2.jpg','name':'火の爪','discribtion':'敵防御を無視し、攻撃する。さらに敵現在HPの20％の燃焼ダメージを与える。'},
+                        {'url':'url(StateImg/p1_3.jpg','name':'石投げ','discribtion':'敵防御10減少させ、さらに攻撃する。連続に使うと、必ずクリティカルする。'},
+                        {'url':'url(StateImg/p1_4.jpg','name':'幽冥斬','discribtion':'素早く剣を振り回し、攻撃13減少するが、このターンで4回連続攻撃する。'},
+                        {'url':'url(StateImg/p1_5.jpg','name':'ガード','discribtion':'防御14上昇し、HP30回復する。連続に使うと、さらに防御6上昇する。'},
+                        {'url':'url(StateImg/p1_6.jpg','name':'集中','discribtion':'会心30上昇し、さらに会ダメが50上昇する。残りHPが50%以下の場合、さらHP150回復する。'},
+                        {'url':'url(StateImg/p1_7.jpg','name':'咆哮','discribtion':'攻撃15上昇する。残りHPが50%以下の場合、さらに攻撃と防御8上昇する。'}, 
+                        {'url':'url(StateImg/p1_8.jpg','name':'閃光弾','discribtion':'敵の会心を40減少させる。もし敵が攻撃してきた場合、さらに攻撃19減少させる。'},
+                        {'url':'url(StateImg/p1_9.jpg','name':'星の杖','discribtion':'このターンで敵が攻撃してこない場合、全属性(回避除き)中上昇する。'},
+                        {'url':'url(StateImg/p1_10.jpg','name':'悪魔の面','discribtion':'悪魔に理性を捧げる、その代わりに防御18減少し、会心120上昇する。'},
+                        {'url':'url(StateImg/p1_11.jpg','name':'バリア','discribtion':'2ターンの間、受けるダメージが60％減軽する。(ダメ減バフは重複しない)'},
+                        {'url':'url(StateImg/p1_12.jpg','name':'抜刀術','discribtion':'このターンで回避を40％上昇し、次のターンで与えるダメージが130％上昇する。'}
+                        //{'name':'キラキラ','discribtion':'ランダムでスキル使う、さらにそのスキル効果が50％UP'}
+                        //{'name':'麻痺','discribtion':'攻撃する。さらに次のターンに敵を麻痺させる。'}
+            ]
+
+            for(var i=0;i<skills.length;i++){
+                var p1skill = document.createElement('div')
+                p1skill.style.width = "60px"
+                p1skill.style.height = "60px"
+                p1skill.style.border = "3px solid white"
+                p1skill.id = 'p1_'+i
+                p1skill.style.float = "left"
+                p1skill.style.background = "url(StateImg/p1_"+i+".jpg)"
+                $("#p1skillicons")[0].appendChild(p1skill)
+            }
+            for(var i=0;i<skills.length;i++){
+                var p2skill = document.createElement('div')
+                p2skill.style.width = "60px"
+                p2skill.style.height = "60px"
+                p2skill.style.border = "3px solid white"
+                p2skill.id = 'p2_'+i
+                p2skill.style.float = "left"
+                p2skill.style.background = "url(StateImg/p1_"+i+".jpg)"
+                $("#p2skillicons")[0].appendChild(p2skill)
+            }
+
+            //キーによりのオート機能
+            var p1_index = 0
+            var p2_index = 0
+            var p1flag = 0
+            var p2flag = 0
+            document.onkeydown=function(event){
+                var code = event.keyCode
+                var skill_index = ['#usep1s1','#usep2s1']
+                switch(code){
+                    case 13:
+                        var entercode = [
+                                    '#p1namecheck','#p2namecheck',
+                                    '#p1turnstart','#usep1s1','#p1turnend',
+                                    '#p2turnstart','#usep2s1','#p2turnend',
+                                    '#battlestart'
+                        ]
+                        for(let i=0;i<entercode.length;i++){
+                            if($(entercode[i])[0].style.color == 'red'){
+                                $(entercode[i]).click()
+                                break;
+                            }
+                        }
+                        break;
+                    case 37:
+                        if($(skill_index[0])[0].style.color == 'red'){
+                            p1_index -=1
+                            if(p1_index==-1){
+                                p1_index=12
+                            }
+                            setskill(1,p1_index)
+                            seticonred(1,p1_index)
+                            break;
+                        }
+                        if($(skill_index[1])[0].style.color == 'red'){
+                            p2_index -=1
+                            if(p2_index==-1){
+                                p2_index=12
+                            }
+                            setskill(2,p2_index)
+                            seticonred(2,p2_index)
+                            break;
+                        }
+                        break;
+                    case 39:
+                        if($(skill_index[0])[0].style.color == 'red'){
+                            if(p1flag==0){
+                                p1_index -=1
+                                p1flag +=1
+                            }
+                            p1_index +=1
+                            if(p1_index==13){
+                                p1_index=0
+                            }
+                            setskill(1,p1_index)
+                            seticonred(1,p1_index)
+                            break;                        
+                        }
+                        if($(skill_index[1])[0].style.color == 'red'){
+                            if(p2flag==0){
+                                p2_index -=1
+                                p2flag +=1
+                            }
+                            p2_index +=1
+                            if(p2_index==13){
+                                p2_index=0
+                            }
+                            setskill(2,p2_index)
+                            seticonred(2,p2_index)
+                            break;                        
+                        }
+                        break;
+                }
+            }
+            
+            function setskill(player,num){
+                $(".p"+player+"s1")[0].style.background = skills[num].url
+                $(".p"+player+"s1")[0].style.backgroundSize = "100% 100%"
+                $(".p"+player+"s1")[1].innerHTML = skills[num].name
+                $(".p"+player+"s1")[2].innerHTML = skills[num].discribtion
+            }
+            function seticonred(player,num){
+                for(var i=0;i<skills.length;i++){
+                    $("#p"+player+"_"+i)[0].style.borderColor = "white"
+                }
+                $("#p"+player+"_"+num)[0].style.borderColor = "red"
+            }
+                       
+
+            $("#p1_0").click(function(){
+                setskill(1,0)
+                seticonred(1,0)
+            })
+            $("#p1_1").click(function(){
+                setskill(1,1)
+                seticonred(1,1)
+            })
+            $("#p1_2").click(function(){
+                setskill(1,2)
+                seticonred(1,2)
+            })
+            $("#p1_3").click(function(){
+                setskill(1,3)
+                seticonred(1,3)
+            })
+            $("#p1_4").click(function(){
+                setskill(1,4)
+                seticonred(1,4)
+            })
+            $("#p1_5").click(function(){
+                setskill(1,5)
+                seticonred(1,5)
+            })
+            $("#p1_6").click(function(){
+                setskill(1,6)
+                seticonred(1,6)
+            })
+            $("#p1_7").click(function(){
+                setskill(1,7)
+                seticonred(1,7)
+            })
+            $("#p1_8").click(function(){
+                setskill(1,8)
+                seticonred(1,8)
+            })
+            $("#p1_9").click(function(){
+                setskill(1,9)
+                seticonred(1,9)
+            })
+            $("#p1_10").click(function(){
+                setskill(1,10)
+                seticonred(1,10)
+            })
+            $("#p1_11").click(function(){
+                setskill(1,11)
+                seticonred(1,11)
+            })
+            $("#p1_12").click(function(){
+                setskill(1,12)
+                seticonred(1,12)
+            })
+            
+            $("#p2_0").click(function(){
+                setskill(2,0)
+                seticonred(2,0)
+            })
+            $("#p2_1").click(function(){
+                setskill(2,1)
+                seticonred(2,1)
+            })
+            $("#p2_2").click(function(){
+                setskill(2,2)
+                seticonred(2,2)
+            })
+            $("#p2_3").click(function(){
+                setskill(2,3)
+                seticonred(2,3)
+            })
+            $("#p2_4").click(function(){
+                setskill(2,4)
+                seticonred(2,4)
+            })
+            $("#p2_5").click(function(){
+                setskill(2,5)
+                seticonred(2,5)
+            })
+            $("#p2_6").click(function(){
+                setskill(2,6)
+                seticonred(2,6)
+            })
+            $("#p2_7").click(function(){
+                setskill(2,7)
+                seticonred(2,7)
+            })
+            $("#p2_8").click(function(){
+                setskill(2,8)
+                seticonred(2,8)
+            })
+            $("#p2_9").click(function(){
+                setskill(2,9)
+                seticonred(2,9)
+            })
+            $("#p2_10").click(function(){
+                setskill(2,10)
+                seticonred(2,10)
+            })
+            $("#p2_11").click(function(){
+                setskill(2,11)
+                seticonred(2,11)
+            })
+            $("#p2_12").click(function(){
+                setskill(2,12)
+                seticonred(2,12)
+            })
+    
+            print("ゲームルールと流れ:")
+            print("1:まずは職業を選んで、"+red("「確認」")+"しましょう！（左上と右上）")
+            print("2:"+ red("「ターン開始」")+" ボタンを押して、自分のステータス板が見えます。")
+            print("3:ステータスを振り分けましょう。間違ったら"+red("「✕」")+"を押してやり直せます。")
+            print("4:スキル 1 個を決めて"+red("「決定」")+" を押しましょう！")
+            print("5:"+ red("「ターン終了」")+"ボタンを押しましょう！")
+            print("&nbsp")
+            print("- - - - - - - - - - - - - - "+red("職　業")+" - - - - - - - - - - - - - - - -")
+            print(purple("戦士") + " : 攻撃、防御、HPが高い。特に弱みがない職業です。")
+            print(purple("盗賊") + " : 会心、回避が高い。運要素ありの職業です。")
+            print(purple("アーチャー") + " : 攻撃、会心が高い。敏捷職業です。")
+            print(purple("魔法使い") + " : 攻撃力が非常に高いが、防御手段が少ない職業です。")
+            refresh()
+
+            var gameround = 1
+            var p1no_excute = true
+            var p2no_excute = true
+            var p1_damage = 1
+            var p2_damage = 1
+            var hp_length = 584
+            var p1_turara = 0
+            var p2_turara = 0
+
+            $("#p1namecheck").click(function(){
+                var msg = "職業が "+ $("#p1name").val() +" でよろしいですか？"
+                if(confirm(msg)){
+                    setjob(1,getjob(1))
+
+                    $("#p1name").attr("disabled",true)
+                    $("#p1namecheck")[0].style.color = "gray"
+                    $("#p1namecheck")[0].value = "✅"       
+                    $("#p1namecheck").attr("disabled",true)
+                    $("#p2namecheck").attr("disabled",false)
+                    $("#p2namecheck")[0].style.color = "red"
+                }
+
+                $("#p1namecheck").css("background","yellow")
+                sleep()                
+            })
+            $("#p2namecheck").click(function(){
+                var msg = "職業が "+ $("#p2name").val() +" でよろしいですか？"
+                if(confirm(msg)){
+                    setjob(2,getjob(2))
+                    
+                    $("#p2name").attr("disabled",true)
+                    $("#p2namecheck")[0].style.color = "gray"
+                    $("#p2namecheck")[0].value = "✅"       
+                    $("#p2namecheck").attr("disabled",true)                            
+                    $("#p1turnstart").attr("disabled",false)
+                    $("#p1turnstart")[0].style.color = "red"
+                }
+                       
+                $("#p2namecheck").css("background","yellow")
+                sleep()                
+            })
+            
+            $(".p1atkup").click(function(){
+                if($("#p1statepoint").val() > 0){
+                    p1up("attack",1)
+                    p1up("statepoint",-1)
+                }               
+                $(".p1atkup").css("background","yellow")
+                sleep()
+            })
+            $(".p1defup").click(function(){
+                if($("#p1statepoint").val() > 0){
+                    p1up("defense",1)
+                    p1up("statepoint",-1)
+                }
+                $(".p1defup").css("background","yellow")
+                sleep()
+            })
+            $(".p1criup").click(function(){
+                if($("#p1statepoint").val() > 0){
+                    p1up("critical",5)
+                    p1up("statepoint",-1)
+                } 
+                $(".p1criup").css("background","yellow")
+                sleep()
+            })
+            $(".p1cdmgup").click(function(){
+                if($("#p1statepoint").val() > 0){
+                    p1up("cridmg",15)
+                    p1up("statepoint",-1)
+                }
+                $(".p1cdmgup").css("background","yellow")
+                sleep()
+            })
+            $(".p1aviup").click(function(){
+                if($("#p1statepoint").val() > 0){
+                    p1up("avoid",2)
+                    p1up("statepoint",-1)
+                }
+                $(".p1aviup").css("background","yellow")
+                sleep()
+            })
+            $(".p1hpup").click(function(){
+                if($("#p1statepoint").val() > 0){
+                    p1up("healthpoint",13)
+                    p1up("healthpointTotal",13)
+                    p1up("statepoint",-1)
+                }
+                $(".p1hpup").css("background","yellow")
+                sleep()
+            })
+            $(".p1cancelbtn").click(function(){               
+                setjob(1,getjob(1))
+                p1set("statepoint",20)
+
+                $(".p1cancelbtn").css("background","yellow")
+                sleep()               
+            })
+
+            $(".p2atkup").click(function(){
+                if($("#p2statepoint").val() > 0){
+                    p2up("attack",1)
+                    p2up("statepoint",-1)
+                }
+                $(".p2atkup").css("background","yellow")
+                sleep()
+            })
+            $(".p2defup").click(function(){
+                if($("#p2statepoint").val() > 0){
+                    p2up("defense",1)
+                    p2up("statepoint",-1)
+                }
+                $(".p2defup").css("background","yellow")
+                sleep()
+            })
+            $(".p2criup").click(function(){
+                if($("#p2statepoint").val() > 0){
+                    p2up("critical",5)
+                    p2up("statepoint",-1)
+                } 
+                $(".p2criup").css("background","yellow")
+                sleep()
+            })
+            $(".p2cdmgup").click(function(){
+                if($("#p2statepoint").val() > 0){
+                    p2up("cridmg",15)
+                    p2up("statepoint",-1)
+                }
+                $(".p2cdmgup").css("background","yellow")
+                sleep()
+            })
+            $(".p2aviup").click(function(){
+                if($("#p2statepoint").val() > 0){
+                    p2up("avoid",2)
+                    p2up("statepoint",-1)
+                }
+                $(".p2aviup").css("background","yellow")
+                sleep()
+            })
+            $(".p2hpup").click(function(){
+                if($("#p2statepoint").val() > 0){
+                    p2up("healthpoint",13)
+                    p2up("healthpointTotal",13)
+                    p2up("statepoint",-1)
+                }
+                $(".p2hpup").css("background","yellow")
+                sleep()
+            })
+            $(".p2cancelbtn").click(function(){
+                setjob(2,getjob(2))
+                p2set("statepoint",20)
+
+                $(".p2cancelbtn").css("background","yellow")
+                sleep()
+            })
+
+            function p1excute(){
+                p1no_excute = false
+                var mydmg = parseInt(($("#p1attack").val()-$("#p2defense").val()) *(Math.random()*0.4+0.8) *parseFloat(p1_damage))
+                if(mydmg <= 0){
+                    mydmg = 0
+                }
+                if(Math.round(Math.random() * 100) <= $("#p2avoid").val()){
+                    mydmg = 0
+                    print(getname(1) + " の攻撃が"+purple("回避")+"されちゃった！")
+                }else if(Math.round(Math.random() * 100) <= $("#p1critical").val()){
+                    mydmg = parseInt(mydmg * $("#p1cridmg").val()/100)
+                    print(getname(1) + " が "+ getname(2)+" に " + bigpink(mydmg)  + " のクリティカルダメージ！")
+                }else{
+                    print(getname(1) + " が "+ getname(2)+" に " + pink(mydmg)  + " のダメージ！")
+                }                   
+                p2up("healthpoint",-mydmg)
+            }
+            function p2excute(){
+                p2no_excute = false
+                var endmg = parseInt(($("#p2attack").val()-$("#p1defense").val()) *(Math.random()*0.4+0.8) *parseFloat(p2_damage))
+                if(endmg <= 0){
+                    endmg = 0
+                }
+                if(Math.round(Math.random() * 100) <= $("#p1avoid").val()){
+                    endmg = 0
+                    print(getname(2) + " の攻撃が"+purple("回避")+"されちゃった！")
+                }else if(Math.round(Math.random() * 100) <= $("#p2critical").val()){
+                    endmg = parseInt(endmg * $("#p2cridmg").val()/100)
+                    print(getname(2) + " が "+ getname(1) +" に " + bigpink(endmg) + " のクリティカルダメージ！")
+                }else{
+                    print(getname(2) + " が "+ getname(1) +" に " + pink(endmg)   + " のダメージ！")
+                }                    
+                p1up("healthpoint",-endmg)
+            }
+            function p1using(skill){
+                if($("#p1usingskill")[0].innerHTML == skill)
+                return true;
+                return false;               
+            }
+            function p1used(skill){
+                if($("#p1usedskill")[0].innerHTML == skill)
+                return true;
+                return false;
+                
+            }
+            function p2using(skill){
+                if($("#p2usingskill")[0].innerHTML == skill)
+                return true;
+                return false;               
+            }
+            function p2used(skill){
+                if($("#p2usedskill")[0].innerHTML == skill)
+                return true;
+                return false;                
+            }
+            function p1up(state,values){
+                $("#p1"+state)[0].value = parseInt($("#p1"+state)[0].value) + values
+            }
+            function p2up(state,values){
+                $("#p2"+state)[0].value = parseInt($("#p2"+state)[0].value) + values
+            }            
+            function p1set(state,values){
+                $("#p1"+state)[0].value = values
+            }
+            function p2set(state,values){
+                $("#p2"+state)[0].value = values
+            }
+            function setall(player,values1,values2,values3,values4,values5,values6){
+                $("#p"+player+"attack")[0].value = values1
+                $("#p"+player+"defense")[0].value = values2
+                $("#p"+player+"critical")[0].value = values3
+                $("#p"+player+"cridmg")[0].value = values4
+                $("#p"+player+"avoid")[0].value = values5
+                $("#p"+player+"healthpoint")[0].value = values6
+                $("#p"+player+"healthpointTotal")[0].value = values6
+
+            }
+
+            function print(text){
+                $(".log")[0].innerHTML += "<div>&nbsp" + text + "</div>"
+            }
+            function p1print(text){
+                $(".log")[0].innerHTML += "<div>&nbsp" + $("#p1name").val() + text + "</div>"
+            }
+            function p2print(text){
+                $(".log")[0].innerHTML += "<div>&nbsp" + $("#p2name").val() + text + "</div>"
+            }
+            
+            function pink(text){
+                return "<span style=\"color:pink\">"+text+"</span>"
+            }
+            function bigpink(text){
+                return "<span style=\"color:pink;font-size:32px;\">"+text+"</span>"
+            }
+            function purple(text){
+                return "<span style=\"color:rgb(168, 163, 255)\">"+text+"</span>"
+            }
+            function red(text){
+                return "<span style=\"color:#ff6060\">"+text+"</span>"
+            }
+            function setcolor(color,text){
+                return "<span style=\"color:"+color+"\">"+text+"</span>"
+            }
+
+            $(".battle").click(function(){
+                $(".p1cancelbtn").attr("disabled",true)
+                $(".p2cancelbtn").attr("disabled",true)
+                
+                if($("#p1healthpoint").val() > 0 && $("#p2healthpoint").val() > 0){                    
+                    
+                    $(".log")[0].innerHTML = ""
+                    gameround += 1
+                    $("#gameround")[0].innerHTML = gameround+" 巡目"
+                    p1no_excute = true
+                    p2no_excute = true
+                    p1_damage = 1
+                    p2_damage = 1
+                    if($("#p1name")[0].value == "dai"){
+                        p1_damage = 1.3
+                    }  
+                    if($("#p2name")[0].value == "dai"){
+                        p2_damage = 1.3
+                    }  
+                    
+                    //flag
+                    if($("#p1attack").val()-$("#p2defense").val( )>= 50){
+                        p1print(" が狂気を満ちている！")
+                    }
+                    if($("#p2attack").val()-$("#p1defense").val() >= 50){
+                        p2print(" が狂気を満ちている！")
+                    }
+
+
+                    
+                    //battle-1
+                    if(p1using("斬撃")){
+                        p1print(" の攻撃小上昇した！")
+                        p1up("attack",7)
+                    }else if(p1using("ガード")){
+                        if(p1used("ガード")){
+                            p1print(" の防御小上昇した！")
+                            p1up("defense",6)
+                        }
+                        p1print(" の防御上昇した！")
+                        p1up("defense",14)
+                        p1print(" のHP小回復した！")
+                        if(getstate(1,"healthpoint")>getstate(1,"healthpointTotal")-30){
+                            setstate(1,"healthpoint",getstate(1,"healthpointTotal"))
+                        }else{
+                            p1up("healthpoint",30)
+                        }
+                    }else if(p1using("集中")){
+                        if(parseInt(hp_length*$("#p1healthpoint").val()/$("#p1healthpointTotal").val()) <= hp_length*0.5){
+                            p1print(" のHPが回復した！")
+                            p1up("healthpoint",150)
+                        }
+                        p1print(" が集中してる！")
+                        p1up("critical",30)
+                        p1up("cridmg",50)              
+                    }else if(p1using("咆哮")){
+                        if(parseInt(hp_length*$("#p1healthpoint").val()/$("#p1healthpointTotal").val()) <= hp_length*0.5){
+                            p1print(" の攻撃大上昇した！")
+                            p1print(" の防御上昇した！")
+                            p1up("defense",8)
+                            p1up("attack",8)
+                        }else{
+                            p1print(" の攻撃上昇した！")
+                        }
+                        p1up("attack",15)                       
+                    }else if(p1using("閃光弾")){
+                        p2print(" の会心中減少した！")
+                        p2up("critical",-40)
+                    }else if(p1using("悪魔の面")){
+                        p1print(" が苦しんでる！")
+                        p1print("の防御大減少した！")
+                        p1print(" の会心激上昇した！")
+                        p1up("defense",-18)
+                        p1up("critical",120)
+                    }else if(p1using("バリア")){
+                        p1print(" がバリアを展開してる！")
+                        p2_damage *= 0.4
+                    }else if(p1using("抜刀術")){
+                        p1print(" が姿勢を構えてる！")
+                        p1up("avoid",40)
+                    }
+
+                    
+                    if(p1used("バリア")){
+                        p1print(" がバリアを展開してる！")
+                        p2_damage *= 0.4
+                    }else if(p1used("抜刀術")){
+                        p1print(" の力が大幅に増幅してる！")
+                        p1_damage *= 2.3
+                    }
+
+
+
+                    if(p2using("斬撃")){
+                        p2print(" の攻撃小上昇した！")
+                        p2up("attack",7)
+                    }else if(p2using("ガード")){
+                        if(p2used("ガード")){
+                            p2print(" の防御小上昇した！")
+                            p2up("defense",6)
+                        }
+                        p2print(" の防御上昇した！")
+                        p2up("defense",14)
+                        p2print(" のHP小回復した！")
+                        if(getstate(2,"healthpoint")>getstate(2,"healthpointTotal")-30){
+                            setstate(2,"healthpoint",getstate(2,"healthpointTotal"))
+                        }else{
+                            p2up("healthpoint",30)
+                        }
+                    }else if(p2using("集中")){
+                        if(parseInt(hp_length*$("#p2healthpoint").val()/$("#p2healthpointTotal").val()) <= hp_length*0.5){
+                            p2print(" のHPが回復した！")
+                            p2up("healthpoint",150)
+                        }
+                        p2print(" が集中してる！")
+                        p2up("critical",30)
+                        p2up("cridmg",50)
+                    }else if(p2using("咆哮")){
+                        if(parseInt(hp_length*$("#p2healthpoint").val()/$("#p2healthpointTotal").val()) <= hp_length*0.5){
+                            p2print(" の攻撃大上昇した！")
+                            p2print(" の防御上昇した！")
+                            p2up("defense",8)
+                            p2up("attack",8)
+                        }else{
+                            p2print(" の攻撃上昇した！")
+                        }
+                        p2up("attack",15)                       
+                    }else if(p2using("閃光弾")){
+                        p1print(" の会心中減少した！")
+                        p1up("critical",-40)
+                    }else if(p2using("悪魔の面")){
+                        p2print(" が苦しんでる！")
+                        p2print(" の防御大減少した！")
+                        p2print(" の会心激上昇した！")
+                        p2up("defense",-18)
+                        p2up("critical",120)
+                    }else if(p2using("バリア")){
+                        p2print(" がバリアを展開してる！")
+                        p1_damage = 0.4
+                    }else if(p2using("抜刀術")){
+                        p2print(" が姿勢を構えてる！")
+                        p2up("avoid",40)
+                    }
+                    
+
+                    if(p2used("バリア")){
+                        p2print(" がバリアを展開してる！")
+                        p1_damage = 0.4
+                    }else if(p2used("抜刀術")){
+                        p2print(" の力が大幅に増幅してる！")
+                        p2_damage *= 2.3
+                    }
+                    
+
+
+                    
+                    //battle-2 excute
+                    if(p1using("斬撃")){
+                        p1print(" の斬撃！")
+                        p1excute()
+                    }else if(p1using("氷柱")){
+                        p1_turara +=1
+                        p1print(" の "+pink(p1_turara)+" 回目の氷攻撃！")
+                        p1_damage *= (p1_turara*1.2)
+                        p2up("avoid",-500)
+                        p1excute()
+                        p2up("avoid",500)   
+                    }else if(p1using("火の爪")){
+                        p1up("attack",parseInt($("#p2defense").val()))
+                        p1print(" からの魔法攻撃！")
+                        p1excute()
+                        p1up("attack",-parseInt($("#p2defense").val()))
+                        var firedamage = parseInt($("#p2healthpoint").val()*0.2)
+                        if(firedamage <= 0){
+                            firedamage = 0
+                        }
+                        print("さらに "+ pink(firedamage) +" の燃焼ダメージ！")
+                        p2up("healthpoint",-firedamage)
+                    }else if(p1using("幽冥斬")){
+                        p1print(" が視線から消えた！")
+                        p1up("attack",-13)
+                        p1excute()
+                        p1excute()
+                        p1excute()
+                        p1excute()
+                    }else if(p1using("石投げ")){
+                        if(p1used("石投げ")){
+                            p1up("critical",500)
+                        }
+                        p1print(" が石(ガラス)を投げる！")
+                        p2print(" の防御中減少した！")
+                        p2up("defense",-10)
+                        p1excute()
+                        if(p1used("石投げ")){
+                            p1up("critical",-500)
+                        }
+                    }
+
+                    if(p2using("斬撃")){
+                        p2print(" の斬撃！")
+                        p2excute()
+                    }else if(p2using("氷柱")){
+                        p2_turara +=1
+                        p2print(" の "+pink(p2_turara)+" 回目の氷攻撃！")
+                        p2_damage *= (p2_turara*1.2)
+                        p1up("avoid",-500)
+                        p2excute()
+                        p1up("avoid",500)
+                    }else if(p2using("火の爪")){
+                        p2up("attack",parseInt($("#p1defense").val()))
+                        p2print(" からの魔法攻撃！")
+                        p2excute()
+                        p2up("attack",-parseInt($("#p1defense").val()))
+                        var firedamage = parseInt($("#p1healthpoint").val()*0.2)
+                        if(firedamage <= 0){
+                            firedamage = 0
+                        }
+                        print("さらに "+ pink(firedamage)+" の燃焼ダメージ！")
+                        p1up("healthpoint",-firedamage)
+                    }else if(p2using("幽冥斬")){
+                        p2print(" が視線から消えた！")
+                        p2up("attack",-13)
+                        p2excute()
+                        p2excute()
+                        p2excute()
+                        p2excute()
+                    }else if(p2using("石投げ")){
+                        if(p2used("石投げ")){
+                            p2up("critical",500)
+                        }
+                        p2print(" が石(ガラス)を投げる！")
+                        p1print(" の防御中減少した！")
+                        p1up("defense",-10)
+                        p2excute()
+                        if(p2used("石投げ")){
+                            p2up("critical",-500)
+                        }
+                    }
+
+
+
+                    if(p1used("斬撃") && p1using("斬撃")){
+                        p1print(" の連続斬撃！")
+                        p1_damage *=1.3
+                        p1excute()
+                    }else if(p1used("ブレイク") && p1using("ブレイク")){
+                        p2print(" の防御特大減少した！") 
+                        p2up("defense",-42)
+                    }
+                    
+                    if(p2used("斬撃") && p2using("斬撃")){
+                        p2print(" の連続斬撃！")
+                        p2_damage *=1.3
+                        p2excute()
+                    }else if(p2used("ブレイク") && p2using("ブレイク")){
+                        p1print(" の防御特大減少した！")                     
+                        p1up("defense",-42)                    
+                    }
+
+
+
+                    //battle-3
+                    if(p1using("星の杖") && p2no_excute){
+                        p1print(" が☆彡の杖に恵まれた！")
+                        p1print(" の全属性中上昇した！")
+                        p1up("attack",15)
+                        p1up("defense",6)
+                        p1up("critical",30)
+                        p1up("cridmg",40)
+                        p1up("healthpoint",40)
+                        p1up("healthpointTotal",40)
+                    }                
+                    if(p2using("星の杖") && p1no_excute){
+                        p2print(" が☆彡の杖に恵まれた！")
+                        p2print(" の全属性中上昇した！")
+                        p2up("attack",15)
+                        p2up("defense",6)
+                        p2up("critical",30)
+                        p2up("cridmg",40)
+                        p2up("healthpoint",40)
+                        p2up("healthpointTotal",40)
+                    }
+
+                    if(p1using("閃光弾") && !p2no_excute){
+                        p2print(" の攻撃小減少した！")
+                        p2up("attack",-19)
+                    }
+                    if(p2using("閃光弾") && !p1no_excute){
+                        p1print(" の攻撃小減少した！")
+                        p1up("attack",-19)
+                    }
+
+                    if(p1using("抜刀術")){
+                        p1up("avoid",-40)
+                    }
+                    if(p2using("抜刀術")){
+                        p2up("avoid",-40)
+                    }
+
+                    var p1hpbar = parseInt(hp_length*$("#p1healthpoint").val()/$("#p1healthpointTotal").val())
+                    var p2hpbar = parseInt(hp_length*$("#p2healthpoint").val()/$("#p2healthpointTotal").val())
+
+                    //hpbar
+                    if(p1hpbar>=hp_length){p1hpbar=hp_length}
+                    if(p2hpbar>=hp_length){p2hpbar=hp_length}
+                    if(p1hpbar<=hp_length){$("#p1hpbar").css("background","rgb(80, 120, 20)")}
+                    if(p2hpbar<=hp_length){$("#p2hpbar").css("background","rgb(80, 120, 20)")}
+                    if(p1hpbar<hp_length*0.5){$("#p1hpbar").css("background","orange")}
+                    if(p2hpbar<hp_length*0.5){$("#p2hpbar").css("background","orange")}
+                    if(p1hpbar<hp_length*0.3){$("#p1hpbar").css("background","red")}                                       
+                    if(p2hpbar<hp_length*0.3){$("#p2hpbar").css("background","red")}
+                     
+                    
+                    if($("#p2healthpoint").val() <= 0 && $("#p1healthpoint").val() <= 0){
+                        print( pink("結果") + "： 引き分け!")
+                        showall()
+                    }else if($("#p2healthpoint").val() <= 0){
+                        print( pink("結果") + "： "+$("#p1name").val() + " の勝ちだ!")
+                        showall()    
+                    }else if($("#p1healthpoint").val() <= 0){
+                        print( pink("結果") + "： "+$("#p2name").val() + " の勝ちだ!")
+                        showall()
+                    }
+
+                    if(p1hpbar<1){$("#p1hpbar").css("background","rgb(200, 200, 200)")}                                       
+                    if(p2hpbar<1){$("#p2hpbar").css("background","rgb(200, 200, 200)")}
+                    
+                    $("#p1hpbar")[0].style.width = p1hpbar+ "px"
+                    $("#p2hpbar")[0].style.width = p2hpbar+ "px"
+                                  
+                }
+
+                $("#battlestart").attr("disabled",true)
+                $("#battlestart")[0].style.color = "gray"
+                $("#p1turnstart").attr("disabled",false)
+                $("#p1turnstart")[0].style.color = "red"
+                //$(".battlebt").css("background","yellow")
+                $(".battle").css("background","yellow")
+                sleep()                
+            })
+
+            $("#p1turnstart").click(function(){
+                show("playerTable")
+                show("p1skilllog")
+                show("p1skillresult")
+
+                $("#p1turnstart").attr("disabled",true)
+                $("#p1turnstart")[0].style.color = "gray"
+                $(".p1skill").attr("disabled",false)
+                $("#usep1s1")[0].style.color = "red"
+
+                $("#p1turnstart").css("background","yellow")
+                sleep()
+            })
+            $("#p1turnend").click(function(){
+                hide("playerTable")
+                hide("p1skilllog")
+                hide("p1skillresult")
+
+                $("#p1turnend").attr("disabled",true)
+                $("#p1turnend")[0].style.color = "gray"
+                $("#p2turnstart").attr("disabled",false)
+                $("#p2turnstart")[0].style.color = "red"
+
+                $("#p1turnend").css("background","yellow")
+                sleep()
+            })
+            $("#p2turnstart").click(function(){
+                show("enemyTable")
+                show("p2skilllog")
+                show("p2skillresult")
+                
+                $("#p2turnstart").attr("disabled",true)
+                $("#p2turnstart")[0].style.color = "gray"
+                $(".p2skill").attr("disabled",false)
+                $("#usep2s1")[0].style.color = "red"
+
+                $("#p2turnstart").css("background","yellow")
+                sleep()
+            })
+            $("#p2turnend").click(function(){
+                hide("enemyTable")
+                hide("p2skilllog")
+                hide("p2skillresult")
+
+                $("#p2turnend").attr("disabled",true)
+                $("#p2turnend")[0].style.color = "gray"
+                $("#battlestart").attr("disabled",false)
+                $("#battlestart")[0].style.color = "red"
+
+                $("#p2turnend").css("background","yellow")
+                sleep()
+            })
+
+            $("#usep1s1").click(function(){
+                var msg = $(".p1s1")[1].innerHTML +"を使いますか"
+                if(confirm(msg)){
+                    $("#p1usedskill")[0].innerHTML = $("#p1usingskill")[0].innerHTML
+                    $("#p1usingskill")[0].innerHTML = $(".p1s1")[1].innerHTML
+                    $(".p1skill").attr("disabled",true)
+                    $("#usep1s1")[0].style.color = "gray"
+                    $("#p1turnend").attr("disabled",false)
+                    $("#p1turnend")[0].style.color = "red"
+                }
+
+                $("#usep1s1").css("background","yellow")
+                sleep()
+            })            
+            $("#usep2s1").click(function(){
+                var msg = $(".p2s1")[1].innerHTML +"を使いますか"
+                if(confirm(msg)){
+                    $("#p2usedskill")[0].innerHTML = $("#p2usingskill")[0].innerHTML
+                    $("#p2usingskill")[0].innerHTML = $(".p2s1")[1].innerHTML
+                    $(".p2skill").attr("disabled",true)
+                    $("#usep2s1")[0].style.color = "gray"
+                    $("#p2turnend").attr("disabled",false)
+                    $("#p2turnend")[0].style.color = "red"
+                }
+                
+                $("#usep2s1").css("background","yellow")
+                sleep()
+            })
+            
+            var count = 0;
+            $("#admin").click(function(){ 
+                if(count%2==0){
+                    showall()
+                }else{
+                    hideall()
+                }
+                count++
+            })
+
+            //黄色の点滅する背景
+            var startcolor = 0
+            const time_per = 550
+            function rainbow(){
+                const defaultcolor = 'rgb(0, 0, 0, 0)'
+                var rainbowcolor = ['rgb(255, 255, 0)','rgb(0, 0, 0, 0)']
+                var rainbowname = [
+                                    '#p1namecheck','#p2namecheck',
+                                    '#p1turnstart','#usep1s1','#p1turnend',
+                                    '#p2turnstart','#usep2s1','#p2turnend',
+                                    '#battlestart'
+                ]
+                for(let i=0;i<rainbowname.length;i++){
+                    if($(rainbowname[i])[0].style.color == 'red'){
+                        $(rainbowname[i])[0].style.backgroundColor = rainbowcolor[startcolor]
+                    }else{
+                        $(rainbowname[i])[0].style.backgroundColor = defaultcolor
+                    }
+                }
+                startcolor += 1
+                if(startcolor == rainbowcolor.length){
+                    startcolor = 0
+                }
+            }
+            setInterval(rainbow,time_per)
+        });
+    </script>
+    <script name="style">
+        //css style
+        $(function(){
+            $("table").attr({border:1})
+            $(":text").attr({size:4})
+            $(".playername").attr({size:20})
+            $("#p1skillresult").attr({border:0})
+            $("#p2skillresult").attr({border:0})
+        })
+    </script>
+    <script type="text/babel">
+    </script>
+      
+    <style name="style">
+        *{
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        #skillicon1,#skillicon2,#player1_mix,#player2_mix,#metal_state1,#metal_state2,#metal_state3,#metal_state4{
+            background-image: url(StateImg/background.jpg);
+        }
+        body{
+            width: 1905px;
+            height: 935px;
+        }
+        body,input{
+            font-family: 'DotGothic16', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        input{
+            border: none;
+            background-color: rgb(200, 200, 200);
+            text-align: left;
+        }
+        table,tr,td{
+            background-color: rgb(200, 200, 200);
+            border-radius: 5px;
+        }
+        div{
+            border-radius: 5px;
+        }
+        table{
+            border:2px solid #ffe9e9;
+            border-radius: 5px;
+        }
+        .p1s1,.p2s1{
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #usep1s1,#usep2s1{
+            border: 3px solid rgb(182, 80, 255);
+        }
+        .stateinfo{
+            background-color: rgb(55, 55, 55);
+            color: rgb(255, 200, 128);
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body id="body" background="StateImg/background.jpg">
+    
+    <div id="gametitle" style="font-size: 26px;text-align: center;background-color: #000; color: #FFF">JavaScriptで作った普通な文字対戦バトルゲーム！</div>
+    <hr/>
+    
+    <div id="name_and_hpbar">
+        <table id="player1name" style="float: left;">
+            <tr>
+                <td>    
+                    <select id="p1name" style="height: 28px; width: 192px;font-size: 20px;font-weight: bold;background-color: rgb(220, 220, 220);">
+                        <option value="戦士">戦士</option>
+                        <option value="盗賊">盗賊</option>
+                        <option value="アーチャー">アーチャー</option>
+                        <option value="魔法使い">魔法使い</option>
+                    </select>
+                </td>
+                <td><input id="p1namecheck" type="button" value="確認" style="color: red;width: 49px;"></td>
+           </tr>
+        </table>    
+        
+        <table style="float: left;width: 600px;">
+            <td align="left"><input disabled style="background-color: rgb(80, 120, 20);width: 584px;border-radius: 4px;" id="p1hpbar"></td>
+        </table>
+        <table style="float: left;" cellpadding="0">
+            <tr>
+                <td><img src="StateImg/hp.png" style="height: 25px;"></td>
+            </tr>
+        </table>
+     
+        <table style="float: left;" cellpadding="0">
+            <tr>
+                <td id="gameround" style="color: rgb(248, 196, 255);background-color: #000;width: 107px;height: 30px;text-align: center;font-size: 21px;">1  巡目</td>
+            </tr>
+        </table>
+    
+        <table id="player2name" style="float: right;">
+            <tr>
+                <td>
+                    <select id="p2name" style="height: 28px; width: 192px;font-size: 20px;font-weight: bold;background-color: rgb(220, 220, 220);">
+                        <option value="戦士">戦士</option>
+                        <option value="盗賊">盗賊</option>
+                        <option value="アーチャー">アーチャー</option>
+                        <option value="魔法使い">魔法使い</option>
+                    </select>
+                </td>
+                <td><input disabled id="p2namecheck"  type="button" value="確認" style="width: 49px;"></td>
+           </tr>
+        </table>
+        <table style="float: right;width: 600px;">
+            <td align="right"><input disabled style="background-color: rgb(80, 120, 20);width: 584px;border-radius: 4px;" id="p2hpbar"></td>
+        </table>
+        <table style="float:right;" cellpadding="0">
+            <tr>
+                <td><img src="StateImg/hp.png" style="height: 25px;"></td>
+            </tr>
+        </table>
+    </div>
+    
+    <div id="player1_mix" style="clear: both;float: left;height: 550px;">
+        <table id="playerTable" style=" text-align: center;width: 470px;visibility:hidden;" cellpadding="0">
+            <tr>
+                <td><img src="StateImg/statepoint.png" style="height: 25px;width: 25px;"></td>
+                <td>残Ｐ</td>
+                <td colspan="2"><input disabled id="p1statepoint" value="20"></td>
+                <td><input type="button" class="p1cancelbtn" value="✕" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;ステータスポイント</td>
+            </tr>
+            <tr>
+                <td ><img src="StateImg/atk.png" style="height: 25px;width: 25px;"></td>
+                <td>攻撃</td>
+                <td colspan="2" class="stateTableChangeColor" ><input disabled id="p1attack" value=""></td>
+                <td class="atkbt"><input type="button" class="p1atkup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;与ダメージが上昇する</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/def.png" style="height: 25px;width: 25px;"></td>
+                <td>防御</td>
+                <td colspan="2" class="stateTableChangeColor" ><input disabled id="p1defense" value=""></td>
+                <td class="defbt"><input type="button" class="p1defup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;被ダメージが減少する</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/cri.png" style="height: 25px;width: 25px;"></td>
+                <td>会心</td>
+                <td colspan="2" class="stateTableChangeColor" ><input disabled id="p1critical"  value="">％</td>
+                <td class="cribt"><input type="button" class="p1criup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;クリティカル率</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/cridmg.png" style="height: 25px;width: 25px;"></td>
+                <td>会ダ</td>
+                <td colspan="2" class="stateTableChangeColor" ><input disabled id="p1cridmg"  value=""></td>
+                <td class="p1cridmgbt"><input type="button" class="p1cdmgup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;クリティカル倍率</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/avoid.png" style="height: 25px;width: 25px;"></td>
+                <td>回避</td>
+                <td colspan="2" class="stateTableChangeColor" ><input disabled id="p1avoid"  value="">％</td>
+                <td class="p1avoidbt"><input type="button" class="p1aviup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;敵攻撃を無効化する</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/hp.png" style="height: 25px;width: 25px;"></td>
+                <td>ＨＰ</td>
+                <td class="stateTableChangeColor" ><input disabled  id="p1healthpoint" value="">/</td>
+                <td class="stateTableChangeColor" ><input disabled  id="p1healthpointTotal" value=""></td>
+                <td class="hpbt"><input type="button" class="p1hpup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;ゼロになると負ける</td>
+            </tr>
+        </table>
+        <table id="p1skilllog" style="float: left; visibility: hidden;" style="width: 300px;">
+            <tr>
+                <td>前のターンスキル使用</td>
+                <td style="width: 100px;text-align: center" id="p1usedskill">未選択</td>
+            </tr>
+            <tr>
+                <td>今のターンスキル使用</td>
+                <td id="p1usingskill" style="text-align: center;">未選択</td>
+            </tr>
+        </table>
+        <div id="metal_state1" style="float: left;width: 168px;height: 70px;">
+            <img src="StateImg/metal_state.png">
+        </div>
+        <div id="metal_state3" style="clear: both; float: left;width: 470px;height: 284px;">
+            <img src="StateImg/metal_state3.png">
+        </div>
+    </div>
+    
+    <table id="battlebutton" style="float:left;" cellpadding="0">
+        <tr>
+            <td class="battlebt"><input disabled id="battlestart" type="button" value="一回対戦" class="battle" style="width: 100%;height: 100%;text-align: center;"></td>
+        </tr>
+        <tr>
+            <td bgcolor="black">
+                <div style="background-color: #000; color: rgb(255, 220, 220); text-align: center;">戦闘ログでもある。毎ターンに更新されるぞ。</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="background-color: #000; color: lightblue; font-size: 26px; width: 955px;height: 467px; " class="log"></div>
+            </td>
+        </tr>        
+    </table>
+
+    <div id="player2_mix" style="float: right;;height: 550px;">
+        <table id="enemyTable" style="text-align: center;width: 470px;visibility: hidden;" cellpadding="0">
+            <tr>
+                <td><img src="StateImg/statepoint.png" style="height: 25px;width: 25px;"></td>
+                <td>残Ｐ</td>
+                <td colspan="2"><input disabled id="p2statepoint" value="20"></td>
+                <td><input type="button" class="p2cancelbtn" value="✕" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;ステータスポイント</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/atk.png" style="height: 25px;width: 25px;"></td>
+                <td>攻撃</td>
+                <td colspan="2" class="stateTableChangeColor"><input disabled id="p2attack" value=""></td>
+                <td class="atkbt"><input type="button" class="p2atkup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;与ダメージが上昇する</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/def.png" style="height: 25px;width: 25px;"></td>
+                <td>防御</td>
+                <td colspan="2" class="stateTableChangeColor"><input disabled id="p2defense" value=""></td>
+                <td class="atkbt"><input type="button" class="p2defup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;被ダメージが減少する</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/cri.png" style="height: 25px;width: 25px;"></td>
+                <td>会心</td>
+                <td colspan="2" class="stateTableChangeColor"><input disabled id="p2critical" value="">％</td>
+                <td class="atkbt"><input type="button" class="p2criup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;クリティカル率</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/cridmg.png" style="height: 25px;width: 25px;"></td>
+                <td>会ダ</td>
+                <td colspan="2" class="stateTableChangeColor"><input disabled id="p2cridmg" value=""></td>
+                <td class="atkbt"><input type="button" class="p2cdmgup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;クリティカル倍率</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/avoid.png" style="height: 25px;width: 25px;"></td>
+                <td>回避</td>
+                <td colspan="2" class="stateTableChangeColor" ><input disabled id="p2avoid"  value="">％</td>
+                <td class="p2avoidbt"><input type="button" class="p2aviup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;敵攻撃を無効化する</td>
+            </tr>
+            <tr>
+                <td><img src="StateImg/hp.png" style="height: 25px;width: 25px;"></td>
+                <td>ＨＰ</td>
+                <td class="stateTableChangeColor"><input disabled id="p2healthpoint" value="">/</td>
+                <td class="stateTableChangeColor"><input disabled id="p2healthpointTotal" value=""></td>
+                <td class="atkbt"><input type="button" class="p2hpup" value="+" style="width: 100%;height: 100%;"></td>
+                <td style="text-align: left;" class="stateinfo">&nbsp;ゼロになると負ける</td>
+            </tr>
+        </table>
+        <table id="p2skilllog" style="float: right;visibility: hidden;" style="width: 300px;">
+            <tr>
+                <td>前のターンスキル使用</td>
+                <td style="width: 100px;text-align: center" id="p2usedskill">未選択</td>
+            </tr>
+            <tr>
+                <td>今のターンスキル使用</td>
+                <td id="p2usingskill" style="text-align: center;">未選択</td>
+            </tr>
+        </table>
+        <div id="metal_state2" style="float: right;width: 168px;height: 70px;">
+            <img src="StateImg/metal_state2.png">
+        </div>
+        <div id="metal_state4" style="clear: both; float: right;width: 470px;height: 276px;">
+            <img src="StateImg/metal_state4.png">
+        </div>
+    </div>
+  
+    <table id="p1skillselect" style="clear: both;float: left;">
+        <tr>
+            <td><input disabled id="p1turnstart" type="button" value="ターン開始"></td>
+            <td><input disabled id="p1turnend" type="button" value="ターン終了"></td>
+        </tr>
+    </table>
+
+    <!--block-->
+    <div id="skillicon1" style="width:157px;height:40px;float: left;">
+        <img src="StateImg/skillicon1.png">
+    </div>
+
+    <table id="p2skillselect" style="float: right;">
+        <tr>
+            <td><input disabled id="p2turnstart" type="button" value="ターン開始"></td>
+            <td><input disabled id="p2turnend" type="button" value="ターン終了"></td>
+        </tr>
+    </table>
+
+    <table id="p1skillresult" style="clear: both;float: left;visibility: hidden;width: 920px;height: 246px;border-spacing:18px;" cellpadding="0">
+        <tr>
+            <td id="p1skillicons" colspan="4" style="height: 60px;"></td>
+        </tr>
+        <tr style="height: 20px">
+            <td class="p1s1" style="width: 130px;" rowspan="2"></td>
+            <td class="p1s1" style="color: red;width: 100px;"></td>
+            <td style="color: blue;" >スキル説明</td>
+        </tr>
+        <tr style="height: 60px;">
+            <td class="p1s1" style="width: 740px;" colspan="2"></td>
+            <td><input disabled id="usep1s1" class="p1skill" type="button" value="決定" style="float: left;border-radius:5px;"></td>
+        </tr>
+    </table>
+
+    <!--block-->
+    <div id="skillicon2" style="width:62px;float: left;margin-left: 1px;">
+        <img src="StateImg/skillicon2.png">
+    </div>
+
+    <table id="p2skillresult" style="float: right;visibility: hidden;width: 920px;height: 246px;border-spacing:18px;" cellpadding="0">
+        <tr>
+            <td id="p2skillicons" colspan="4" style="height: 60px;"></td>
+        </tr>
+        <tr style="height: 20px">
+            <td class="p2s1" style="width: 130px;" rowspan="2"></td>
+            <td class="p2s1" style="color: red;width: 100px;"></td>
+            <td style="color: blue;" >スキル説明</td>
+        </tr>
+        <tr style="height: 60px;">
+            <td class="p2s1" style="width: 740px;" colspan="2"></td>
+            <td><input disabled id="usep2s1" class="p2skill" type="button" value="決定" style="border-radius:5px;"></td>
+        </tr>
+    </table>
+
+    <!--block-->
+    <div id="skillicon3" style="width:1905px;height:3px;float: left;background-color: #ffffe9;margin-top: -5px;">
+
+    </div>
+    
+    <div style="float: right;color: rgb(251, 148, 255);border: 1px solid black;background-color: #000;">
+        <input id="admin" type="button" value="デバグ" style="clear: both;float: left;color: red;">このページでの全ての画像は無料素材となります！！！　　　だぞ！
+    </div>
+
+</body>
+</html>
